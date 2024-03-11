@@ -7,11 +7,6 @@ generator client {
     provider = "prisma-client-js"
 }
 
-model AcademicTerm {
-    id   Int    @id @default(autoincrement())
-    name String
-}
-
 model Account {
     id                String  @id @default(cuid())
     userId            String
@@ -25,10 +20,10 @@ model Account {
     scope             String?
     id_token          String? @db.Text
     session_state     String?
-
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@unique([provider, providerAccountId])
+    @@map("Accounts")
 }
 
 model Session {
@@ -37,16 +32,32 @@ model Session {
     userId       String
     expires      DateTime
     user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@map("Sessions")
 }
 
 model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
+    id               String            @id @default(cuid())
+    name             String?
+    firstName        String
+    lastName         String
+    email            String?           @unique
+    emailVerified    DateTime?
+    image            String?
+    accounts         Account[]
+    sessions         Session[]
+    createdAt        DateTime
+    academicTerm     AcademicTerm[]
+    activities       Activity[]
+    gradingRubric    GradingRubric[]
+    course           Course[]
+    major            Major[]
+    institution      Institution[]
+    professor        Professor[]
+    userInstitutions UserInstitution[]
+    userMajors       UserMajor[]
+
+    @@map("Users")
 }
 
 model VerificationToken {
@@ -55,4 +66,139 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+    @@map("VerificationTokens")
+}
+
+model AcademicTerm {
+    id            String          @id @default(cuid())
+    name          String
+    authorId      String
+    author        User            @relation(fields: [authorId], references: [id])
+    createdAt     DateTime
+    gradingRubric GradingRubric[]
+
+    @@map("AcademicTerms")
+}
+
+model Activity {
+    id              String        @id @default(cuid())
+    name            String
+    abbreviation    String?
+    isCustom        Boolean
+    authorId        String
+    author          User          @relation(fields: [authorId], references: [id])
+    createdAt       DateTime
+    grade           Decimal?
+    weight          Decimal?
+    gradingRubricId String
+    gradingRubric   GradingRubric @relation(fields: [gradingRubricId], references: [id])
+    isTemplate      Boolean
+
+    @@map("Activities")
+}
+
+model GradingRubric {
+    id             String       @id @default(cuid())
+    name           String
+    abbreviation   String?
+    isCustom       Boolean
+    authorId       String
+    author         User         @relation(fields: [authorId], references: [id])
+    createdAt      DateTime
+    courseId       String
+    course         Course       @relation(fields: [courseId], references: [id])
+    activity       Activity[]
+    academicTermId String
+    academicTerm   AcademicTerm @relation(fields: [academicTermId], references: [id])
+    isTemplate     Boolean
+    modificatedAt  DateTime
+
+    @@map("GradingRubrics")
+}
+
+model Course {
+    id               String            @id @default(cuid())
+    name             String
+    abbreviation     String?
+    isCustom         Boolean
+    author           User              @relation(fields: [authorId], references: [id])
+    authorId         String
+    createdAt        DateTime
+    major            Major[]
+    gradingRubric    GradingRubric[]
+    professorCourses ProfessorCourse[]
+
+    @@map("Courses")
+}
+
+model Major {
+    id            String       @id @default(cuid())
+    name          String
+    abbreviation  String?
+    isCustom      Boolean
+    authorId      String
+    author        User         @relation(fields: [authorId], references: [id])
+    createdAt     DateTime
+    course        Course?      @relation(fields: [courseId], references: [id])
+    courseId      String?
+
+    @@map("Majors")
+}
+
+model Institution {
+    id               String            @id @default(cuid())
+    name             String
+    abbreviation     String?
+    isCustom         Boolean
+    authorId         String
+    author           User              @relation(fields: [authorId], references: [id])
+    createdAt        DateTime
+    countryCca3      String?
+    userInstitutions UserInstitution[]
+    userMajors       UserMajor[]
+
+    @@map("Institutions")
+}
+
+model Professor {
+    id               String            @id @default(cuid())
+    name             String
+    abbreviation     String?
+    isCustom         Boolean
+    authorId         String
+    author           User              @relation(fields: [authorId], references: [id])
+    createdAt        DateTime
+    professorCourses ProfessorCourse[]
+
+    @@map("Professors")
+}
+
+model ProfessorCourse {
+    id          String    @id @default(cuid())
+    professorId String
+    professor   Professor @relation(fields: [professorId], references: [id])
+    courseId    String
+    course      Course    @relation(fields: [courseId], references: [id])
+
+    @@map("ProfessorCourses")
+}
+
+model UserInstitution {
+    id            String      @id @default(cuid())
+    userId        String
+    user          User        @relation(fields: [userId], references: [id])
+    institutionId String
+    institutions  Institution @relation(fields: [institutionId], references: [id])
+
+    @@map("UserInstitutions")
+}
+
+model UserMajor {
+    id            String      @id @default(cuid())
+    userId        String
+    user          User        @relation(fields: [userId], references: [id])
+    institutionId String
+    institution   Institution @relation(fields: [institutionId], references: [id])
+
+    @@map("UserMajors")
 }
