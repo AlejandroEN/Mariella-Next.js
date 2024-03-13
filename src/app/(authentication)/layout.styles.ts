@@ -21,3 +21,15 @@ export const AuthenticationContainer = styled.div`
 		#ffb5fc 100%
 	);
 `;
+
+export const Form = styled.div`
+	height: 649px;
+	width: 446px;
+	display: inline-flex;
+	padding: 12px 28px;
+	flex-direction: column;
+	align-items: center;
+	gap: 17px;
+	border-radius: 20px;
+	background: #fff;
+`;
